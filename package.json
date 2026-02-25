@@ -10,7 +10,8 @@
     "./button": "./src/button.tsx",
     "./input": "./src/input.tsx",
     "./navigation": "./src/navigation.tsx",
-    "./shell": "./src/shell.tsx"
+    "./shell": "./src/shell.tsx",
+    "./tokens": "./src/tokens.ts"
   },
   "scripts": {
     "lint": "eslint .",

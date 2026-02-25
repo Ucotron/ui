@@ -27,7 +27,7 @@ interface StatCardProps {
 
 export function StatCard({ label, value, icon }: StatCardProps) {
   return (
-    <div className="glass-card flex items-start gap-3 p-4 transition-all hover:border-[rgba(0,240,255,0.2)] hover:shadow-[0_0_10px_rgba(0,240,255,0.2)]">
+    <div className="glass-card flex items-start gap-3 p-4 transition-all duration-300 hover:border-[rgba(0,240,255,0.2)] hover:shadow-[0_0_20px_rgba(0,240,255,0.15)]">
       {icon && (
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-accent text-accent-foreground">
           {icon}
