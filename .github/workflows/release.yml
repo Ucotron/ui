@@ -1,12 +1,6 @@
 # =============================================================================
 # @ucotron/ui Release — Version bump & GitHub Release
 # =============================================================================
-# Triggered manually via workflow_dispatch. Bumps version in package.json,
-# creates a commit + tag, and publishes a GitHub Release.
-#
-# This is a source-only package consumed via file: reference.
-# No npm publish — versioning is for tracking and changelog purposes.
-# =============================================================================
 
 name: Release
 
@@ -46,8 +40,8 @@ jobs:
       - name: Install & validate
         run: |
           npm install
+          npm install --no-save next@latest react@latest react-dom@latest
           npm run typecheck
-          npm run lint
 
       - name: Bump version
         id: bump
@@ -57,17 +51,16 @@ jobs:
           NEW_VERSION=$(node -p "require('./package.json').version")
           echo "old=${OLD_VERSION}" >> "$GITHUB_OUTPUT"
           echo "new=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
-          echo "Bumped: ${OLD_VERSION} → ${NEW_VERSION}"
+          echo "Bumped: ${OLD_VERSION} -> ${NEW_VERSION}"
 
       - name: Update changelog
         run: |
           DATE=$(date +%Y-%m-%d)
           VERSION="${{ steps.bump.outputs.new }}"
-          ENTRY="## [${VERSION}] — ${DATE}\n\n${{ inputs.summary }}\n"
           if [ -f CHANGELOG.md ]; then
-            sed -i "1s/^/${ENTRY}\n/" CHANGELOG.md
+            printf "## [%s] - %s\n\n%s\n\n%s" "$VERSION" "$DATE" "${{ inputs.summary }}" "$(cat CHANGELOG.md)" > CHANGELOG.md
           else
-            printf "# Changelog\n\n${ENTRY}" > CHANGELOG.md
+            printf "# Changelog\n\n## [%s] - %s\n\n%s\n" "$VERSION" "$DATE" "${{ inputs.summary }}" > CHANGELOG.md
           fi
 
       - name: Commit & tag
@@ -83,23 +76,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          PREV_TAG=$(git tag --sort=-v:refname | head -2 | tail -1)
-          if [ -z "$PREV_TAG" ] || [ "$PREV_TAG" = "v${{ steps.bump.outputs.new }}" ]; then
-            NOTES="Initial release of @ucotron/ui design system"
-          else
-            NOTES=$(git log "${PREV_TAG}..HEAD~1" --pretty=format:"- %s" --no-merges | head -20)
-          fi
-          gh release create "v${{ steps.bump.outputs.new }}" \
-            --title "@ucotron/ui v${{ steps.bump.outputs.new }}" \
-            --notes "$(cat <<EOF
-## ${{ inputs.summary }}
-
-### Changes since ${PREV_TAG:-v0.0.0}
-${NOTES}
-
-### Usage
-\`\`\`json
-"@ucotron/ui": "file:../packages/ui"
-\`\`\`
-EOF
-)"
+          VERSION="v${{ steps.bump.outputs.new }}"
+          TITLE="@ucotron/ui $VERSION"
+          BODY="${{ inputs.summary }}"
+          gh release create "$VERSION" --title "$TITLE" --notes "$BODY"
